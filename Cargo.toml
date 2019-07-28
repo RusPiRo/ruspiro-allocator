@@ -1,0 +1,20 @@
+[package]
+name = "ruspiro-allocator"
+authors = ["André Borrmann <pspwizard@gmx.de>"]
+version = "0.0.1" # remember to update html_root_url
+description = ""
+license = "Apache-2.0"
+repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.0.1"
+readme = "README.md"
+keywords = ["ruspiro", "baremetal", "allocator", "custom", "raspberry-pi"]
+categories = ["no_std", "baremetal"]
+edition = "2018"
+
+[lib]
+
+[dependencies]
+
+[features]
+
+[build-dependencies]
+cc = "1.0.37"
