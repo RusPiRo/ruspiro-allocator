@@ -1,5 +1,5 @@
 #*****************************************************************
-# Makefile to build the RusPiRo kernel
+# Makefile to build the RusPiRo crate
 # setting the necessary environment for cross compiling
 #
 # Copyright (c) 2019 by the authors
