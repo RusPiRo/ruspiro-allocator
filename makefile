@@ -33,5 +33,8 @@ doc:
 	# build docu for this crate using custom target
 	xargo doc --all --no-deps --target $(TARGET) --release --open
 	
+publish:
+	cargo publish --dry-run --target $(TARGET)
+
 clean:
 	cargo clean
