@@ -34,7 +34,7 @@ doc:
 	xargo doc --all --no-deps --target $(TARGET) --release --open
 	
 publish:
-	cargo publish --dry-run --target $(TARGET)
+	xargo publish --dry-run --target $(TARGET)
 
 clean:
 	cargo clean
