@@ -8,7 +8,7 @@ API to be used. It only encapsulates the memeory allocator that shall be linked 
 To use the crate just add the following dependency to your ``Cargo.toml`` file:
 ```
 [dependencies]
-ruspiro-allocator = { git = "https://github.com/RusPiRo/ruspiro-allocator", tag = "v0.0.1" }
+ruspiro-allocator = "0.0.2"
 ```
 
 Once done the access to the custom allocator is available and will be linked with your project if you add
