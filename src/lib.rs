@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.0.2")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.0")]
 #![no_std]
 #![feature(global_asm)]
 #![feature(alloc_error_handler)]
@@ -57,10 +57,8 @@ fn alloc_error_handler(_: Layout) -> ! {
 }
 
 extern "C" {
+    // external functions pre-compiled with the build script from c or assembly files
     fn m_alloca(size: u32, align: u16) -> *mut u8;
     fn m_freea(ptr: *mut u8);
     fn m_memset(ptr: *mut u8, value: u32, size: u32);
 }
-
-// including the assembly file containing fast memset function
-global_asm!(include_str!("./asm/memset.s"));
