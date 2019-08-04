@@ -4,9 +4,8 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.0.2")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.0")]
 #![no_std]
-#![feature(global_asm)]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
 //! 
@@ -19,6 +18,21 @@
 //! To link the custom allocator with your project just add the usage to your main crate rust file like so:
 //! ```
 //! extern crate ruspiro_allocator;
+//! ```
+//! Wherever you define the usage of the ``ruspiro-allocator`` crate within your project does not matter. But as soon
+//! as this is done the dynamic structures requiring heap memory allocations from the ``alloc`` crate could be used like
+//! so:
+//! ```
+//! #[macro_use]
+//! extern crate alloc;
+//! use alloc::vec::*;
+//! use alloc::boxed::*;
+//! 
+//! fn demo() {
+//!     let mut v: Vec<u32> = vec![10, 20];
+//!     let b: Box<u16> = Box::new(10);
+//!     v.push(12);
+//! }
 //! ```
 //! 
 
@@ -57,10 +71,8 @@ fn alloc_error_handler(_: Layout) -> ! {
 }
 
 extern "C" {
+    // external functions pre-compiled with the build script from c or assembly files
     fn m_alloca(size: u32, align: u16) -> *mut u8;
     fn m_freea(ptr: *mut u8);
     fn m_memset(ptr: *mut u8, value: u32, size: u32);
 }
-
-// including the assembly file containing fast memset function
-global_asm!(include_str!("./asm/memset.s"));

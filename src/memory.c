@@ -80,10 +80,10 @@ void* m_alloc(unsigned int size) {
 	if (gHeapStart == 0) {
 		gHeapStart = (unsigned int)&__heap_start; // initialize the heap pointer at first allocation
 		gHeapMax = (unsigned int)&__heap_end - (unsigned int)&__heap_start; // calculate the max. available space
-		// check for really available ARM memory
-		//unsigned int uBaseAddress;
+		// TODO: provide a function to set the max heap address from extern as this in on the Raspberry Pi
+		// 		 configured in the config.txt file when setting up the memory the GPU should be able to use
+		//       but this requires a mailbox call and should not be linked in as dependency to this crate
 		unsigned int uSize = gHeapMax;
-		//pf_getArmMemory(&uBaseAddress, &uSize);
 		// the ARM base address is usually 0
 		// so the really available space is the ARM size - heap_start as the program already occupy ARM memory for
 		// the executable and the stack
@@ -175,7 +175,6 @@ void m_free(void* ptr) {
 		// in case this block has been the last in the HEAP
 		// we do not put this block into the free list, we just reduce the heap end marker
 		if ((unsigned int)header + header->psize == gHeapStart) {
-			//s_printf("MM: free - last heap item freed, reduce heapStart: %x, %u, %x", header, header->psize, gHeapStart);
 			// clear the magic
 			header->magic = 0;
 			gHeapStart = (unsigned int)header;
@@ -190,13 +189,11 @@ void m_free(void* ptr) {
 
 			MEMORY_HEADER_T* pLastFree = gFreeList[uBlock];
 			if (pLastFree == 0) {
-				//s_printf("MM: free - add first free %x, block %u", header, uBlock);
 				// the first free block of this size
 				gFreeList[uBlock] = header;
 				gFreeList[uBlock]->prev = 0;
 				gFreeList[uBlock]->next = 0;
 			} else {
-				//s_printf("MM: free - append free %x to %x, block %u", header, pLastFree, uBlock);
 				pLastFree->next = (unsigned int)header;
 				gFreeList[uBlock] = header;
 				gFreeList[uBlock]->prev = (unsigned int)pLastFree;
