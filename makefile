@@ -15,7 +15,7 @@ TARGETDIR = target\\armv7-unknown-linux-gnueabihf\\release
 # environment variables needed by cargo xbuild to use the custom build target
 export CC = arm-eabi-gcc.exe
 export AR = arm-eabi-ar.exe
-export CFLAGS = -mfpu=neon-fp-armv8 -mfloat-abi=hard -march=armv8-a -Wall -O3 -nostartfiles -ffreestanding -mtune=cortex-a53
+export CFLAGS = -std=c11 -mfpu=neon-fp-armv8 -mfloat-abi=hard -march=armv8-a -Wall -O3 -nostartfiles -ffreestanding -mtune=cortex-a53
 export PATH +=  "$(PROJECT_ROOT);$(ARM_GCC_BIN);$(ARM_GCC_LIB);$(CARGO_BIN)"
 
 # build the current crate

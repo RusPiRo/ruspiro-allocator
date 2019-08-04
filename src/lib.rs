@@ -6,7 +6,6 @@
  **********************************************************************************************************************/
 #![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.0")]
 #![no_std]
-#![feature(global_asm)]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
 //! 
