@@ -37,7 +37,8 @@ fn demo() {
     let mut v: Vec<u32> = vec![10, 20];
     let b: Box<u16> = Box::new(10);
     v.push(12);
-}```
+}
+```
 
 ## License
 Licensed under Apache License, Version 2.0, ([LICENSE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0)
