@@ -19,6 +19,21 @@
 //! ```
 //! extern crate ruspiro_allocator;
 //! ```
+//! Wherever you define the usage of the ``ruspiro-allocator`` crate within your project does not matter. But as soon
+//! as this is done the dynamic structures requiring heap memory allocations from the ``alloc`` crate could be used like
+//! so:
+//! ```
+//! #[macro_use]
+//! extern crate alloc;
+//! use alloc::vec::*;
+//! use alloc::boxed::*;
+//! 
+//! fn demo() {
+//!     let mut v: Vec<u32> = vec![10, 20];
+//!     let b: Box<u16> = Box::new(10);
+//!     v.push(12);
+//! }
+//! ```
 //! 
 
 /// this specifies the custom memory allocator to use whenever heap memory need to be allocated or freed

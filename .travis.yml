@@ -8,17 +8,9 @@ language: rust
 
 matrix:
   fast_finish: true
-  allow_failures:
-    # as we currently see nightly as e prerequisit fail on stable is fine
-    - rust: stable
 
   include:
     - rust: nightly
-      env: 
-        - TARGET=armv7-unknown-linux-gnueabihf
-        - CFLAGS='-std=c11 -mfpu=neon-fp-armv8 -mfloat-abi=hard -march=armv8-a -Wall -O3 -nostartfiles -ffreestanding -mtune=cortex-a53'
-        - RUSTFLAGS='-C target-cpu=cortex-a53 -C target-feature=+a53,+fp-armv8,+v8,+vfp3,+d16,+thumb2,+neon'
-    - rust: stable
       env: 
         - TARGET=armv7-unknown-linux-gnueabihf
         - CFLAGS='-std=c11 -mfpu=neon-fp-armv8 -mfloat-abi=hard -march=armv8-a -Wall -O3 -nostartfiles -ffreestanding -mtune=cortex-a53'
