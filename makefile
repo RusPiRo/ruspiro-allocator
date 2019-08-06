@@ -35,10 +35,10 @@ test:
 	xargo test --doc --target $(TARGET)
 
 publish-dry-run:
-	xargo publish --dry-run --target $(TARGET) --all
+	xargo publish --dry-run --target $(TARGET)
 
 publish:
-	xargo publish --target $(TARGET) --all
+	xargo publish --target $(TARGET)
 
 clean:
 	cargo clean

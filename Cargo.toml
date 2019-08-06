@@ -11,6 +11,9 @@ keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
 edition = "2018"
 
+[workspace]
+members = ["oom"]
+
 [build-dependencies]
 cc = "1.0.37"
 
