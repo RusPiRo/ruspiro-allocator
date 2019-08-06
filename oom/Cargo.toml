@@ -1,8 +1,8 @@
 [package]
-name = "ruspiro-allocator"
+name = "ruspiro-allocator-oom"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.1.1" # remember to update html_root_url
-description = "This crate provides a simple and lightweight heap memory allocator for Raspberry Pi baremetal environments"
+version = "0.1.0" # remember to update html_root_url
+description = "This is a `private` sub-crate of ruspiro-allocator that should only be used as child/dependency of id. It provides the Out-Of-Memory handler implementation for the custom allocator"
 license = "Apache-2.0"
 repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.1.1"
 documentation = "https://docs.rs/ruspiro-allocator/0.1.1"
@@ -11,16 +11,8 @@ keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
 edition = "2018"
 
-[workspace]
-members = ["oom"]
-
-[build-dependencies]
-cc = "1.0.37"
-
 [lib]
 
 [dependencies]
-ruspiro-allocator-oom = { path = "./oom", version = "0.1.0" }
 
 [features]
-
