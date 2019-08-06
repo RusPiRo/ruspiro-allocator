@@ -4,13 +4,13 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.1")]
 #![no_std]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
 //! 
 //! This crate provides a custom allocator for heap memory. If any baremetal crate uses functions and structures from
-//! the ``core::alloc`` crate an allocator need to be provided as well. However, this crate does not export any public
+//! the ``alloc`` crate an allocator need to be provided as well. However, this crate does not export any public
 //! API to be used. It only encapsulates the memeory allocator that shall be linked into the binary.
 //! 
 //! # Usage
@@ -35,6 +35,9 @@
 //! }
 //! ```
 //! 
+
+// `rust_oom` function need to be provided in an extra lib crate for some weird resons...
+extern crate ruspiro_allocator_oom;
 
 /// this specifies the custom memory allocator to use whenever heap memory need to be allocated or freed
 #[global_allocator]
@@ -69,6 +72,17 @@ fn alloc_error_handler(_: Layout) -> ! {
     // TODO: how to handle memory allocation errors?
     loop { }
 }
+
+// putting this here leasd to "rust_oom" already defined during compile time
+// leaving this out lead to "undefined reference to rust_oom" .... WTF ...
+// need to put this into another crate that does not define the alloc_error_handler 
+// and only provides this symbol during compile time
+// 
+/*#[no_mangle]
+fn rust_oom() -> ! {
+    loop { }
+}
+*/
 
 extern "C" {
     // external functions pre-compiled with the build script from c or assembly files

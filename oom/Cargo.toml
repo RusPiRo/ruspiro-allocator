@@ -1,0 +1,13 @@
+[package]
+name = "ruspiro-allocator-oom"
+authors = ["André Borrmann <pspwizard@gmx.de>"]
+version = "0.0.1" # remember to update html_root_url
+description = "The Out-Of-Memory handler implementation for the custom allocator"
+license = "Apache-2.0"
+edition = "2018"
+
+[lib]
+
+[dependencies]
+
+[features]
