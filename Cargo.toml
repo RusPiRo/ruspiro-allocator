@@ -17,7 +17,7 @@ cc = "1.0.37"
 [lib]
 
 [dependencies]
-ruspiro-allocator-oom = { path = "./oom" }
+ruspiro-allocator-oom = { path = "./oom", version = "0.0.1" }
 
 [features]
 
