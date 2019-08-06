@@ -6,6 +6,9 @@ description = "This is a `private` sub-crate of ruspiro-allocator that should on
 license = "Apache-2.0"
 repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.1.1"
 documentation = "https://docs.rs/ruspiro-allocator/0.1.1"
+readme = "README.md"
+keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
+categories = ["no-std", "embedded"]
 edition = "2018"
 
 [lib]

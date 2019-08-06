@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator-oom/0.0.1")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator-oom/0.1.0")]
 #![no_std]
 
 //! # Allocator OutOfMemory implementation
