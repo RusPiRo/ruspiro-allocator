@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.1")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.2")]
 #![no_std]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations

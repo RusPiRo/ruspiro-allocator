@@ -222,3 +222,13 @@ void m_memset(void* trg, const char value, unsigned int size) {
 		uTrg++;
 	}
 }
+
+unsigned int bcmp(const void* src, const void* trg, unsigned int size) {
+	const unsigned char* cSrc = (const unsigned char*)src;
+	const unsigned char* cTrg = (const unsigned char*)trg;
+	for (unsigned int p = 0; p < size; p++) {
+		if (cSrc[p] != cTrg[p]) return p;
+	}
+
+	return 0;
+}
