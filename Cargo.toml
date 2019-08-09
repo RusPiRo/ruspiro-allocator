@@ -11,6 +11,10 @@ keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
 edition = "2018"
 
+[badges]
+travis-ci = { repository = "RusPiRo/ruspiro-allocator", branch = "master" }
+
+
 [workspace]
 members = ["oom"]
 
