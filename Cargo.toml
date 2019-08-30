@@ -1,11 +1,11 @@
 [package]
 name = "ruspiro-allocator"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.1.2" # remember to update html_root_url
-description = "This crate provides a simple and lightweight heap memory allocator for Raspberry Pi baremetal environments"
+version = "0.2.0" # remember to update html_root_url
+description = "Simple and lightweight heap memory allocator for Raspberry Pi baremetal environments"
 license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.1.2"
-documentation = "https://docs.rs/ruspiro-allocator/0.1.2"
+repository = "https://github.com/RusPiRo/ruspiro-allocator"
+documentation = "https://docs.rs/ruspiro-allocator/0.2.0"
 readme = "README.md"
 keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
@@ -13,10 +13,7 @@ edition = "2018"
 
 [badges]
 travis-ci = { repository = "RusPiRo/ruspiro-allocator", branch = "master" }
-
-
-[workspace]
-members = ["oom"]
+maintenance = { status = "actively-developed" }
 
 [build-dependencies]
 cc = "1.0.37"
@@ -24,6 +21,7 @@ cc = "1.0.37"
 [lib]
 
 [dependencies]
+ruspiro-lock = { path = "../lock", version = "0.2" }
 ruspiro-allocator-oom = { path = "./oom", version = "0.1.0" }
 
 [features]
