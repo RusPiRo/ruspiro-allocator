@@ -22,7 +22,7 @@ cc = "1.0.37"
 
 [dependencies]
 ruspiro-lock = { path = "../lock", version = "0.2" }
-ruspiro-allocator-oom = { path = "./oom", version = "0.1.0" }
+ruspiro-allocator-oom = { path = "./oom", version = "0.1" }
 
 [features]
 
