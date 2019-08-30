@@ -217,7 +217,7 @@ void m_memset(void* trg, const char value, unsigned int size) {
 	}
 	unsigned int uSlowSize = size - uFastSize;
 	uTrg+= uFastSize;
-	for (int i=0;i<uSlowSize;i++){
+	for (unsigned int i=0;i<uSlowSize;i++){
 		(*(unsigned int volatile *)uTrg) = value;
 		uTrg++;
 	}
