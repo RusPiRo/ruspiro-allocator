@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.1.2")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.2.0")]
 #![no_std]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
@@ -44,23 +44,36 @@ extern crate ruspiro_allocator_oom;
 static ALLOCATOR: RusPiRoAllocator = RusPiRoAllocator;
 
 use core::alloc::{GlobalAlloc, Layout};
+use ruspiro_lock::Spinlock;
+
+// define a global static guard to secure concurrent cross core access to the allocator
+static GUARD: Spinlock = Spinlock::new();
 
 struct RusPiRoAllocator;
 
 unsafe impl GlobalAlloc for RusPiRoAllocator {
     #[inline]
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        m_alloca(layout.size() as u32, layout.align() as u16)        
+        GUARD.aquire();
+        let mem = m_alloca(layout.size() as u32, layout.align() as u16);
+        GUARD.release();
+
+        mem
     }
 
     #[inline]
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-        m_freea(ptr)
+        GUARD.aquire();
+        m_freea(ptr);
+        GUARD.release();
     }
 
     #[inline]
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
+        GUARD.aquire();
         let ptr = m_alloca(layout.size() as u32, layout.align() as u16);
+        GUARD.release();
+
         m_memset(ptr, 0x0, layout.size() as u32);
         ptr        
     }
@@ -73,7 +86,7 @@ fn alloc_error_handler(_: Layout) -> ! {
     loop { }
 }
 
-// putting this here leasd to "rust_oom" already defined during compile time
+// putting this here lead to "rust_oom" already defined during compile time
 // leaving this out lead to "undefined reference to rust_oom" .... WTF ...
 // need to put this into another crate that does not define the alloc_error_handler 
 // and only provides this symbol during compile time
