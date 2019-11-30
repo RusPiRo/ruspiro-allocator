@@ -31,6 +31,14 @@
 #define MEM_SECTION_MASK		(~(MEM_SECTION_SIZE-1))
 #define MEM_SECTION_ALIGN(x)	((x + MEM_SECTION_SIZE - 1) & MEM_SECTION_MASK)
 
+#ifdef AARCH64 
+typedef unsigned long uintptr_t;
+typedef unsigned long size_t;
+#else
+typedef unsigned int uintptr_t;
+typedef unsigned int size_t;
+#endif
+
 extern char __heap_start; // the address of this external indicates the start address of the HEAP
 extern char __heap_end;	 // the address of this external indicates the end of the HEAP, never allocate memory beyond this point!
 extern void __qmset(char* trg, unsigned int value, unsigned int fastSize);
@@ -45,15 +53,15 @@ typedef struct {
 	unsigned int 	magic;	  	// indicates that this address really is managed memory
 	unsigned int	size;	  	// the size of this allocated memory block
 	unsigned int    psize;      // real size of the buffer in memory incl. admin data
-	unsigned int   prev;		// address of the preceding block
-	unsigned int   next; 		// address of the next block, 0 if at end of heap
+	uintptr_t   prev;		// address of the preceding block
+	uintptr_t   next; 		// address of the next block, 0 if at end of heap
 	char		data[0];  		// here the data begins, &data is the pointer the malloc functions returns
 								// this is also the address m_free will receive for memory releasing
 }MEMORY_HEADER_T;
 
-static unsigned int gHeapStart = 0;				// the global pointer to the last position of complete unused memory in the heap
-static unsigned int gHeapMax = 0;				// maximum available Heap size
-static unsigned int gHeapUsed = 0;				// the total number of bytes occupied on the heap (incl. admin data of each block)
+static uintptr_t gHeapStart = 0;				// the global pointer to the last position of complete unused memory in the heap
+static size_t gHeapMax = 0;				// maximum available Heap size
+static size_t gHeapUsed = 0;				// the total number of bytes occupied on the heap (incl. admin data of each block)
 static unsigned int gBlockSizes[] = {0x40, 0x100, 0x400, 0x1000, 0x4000, 0x10000, 0x40000, 0x100000, 0x400000, 0x800000, 0x1000000, 0x4000000, 0x10000000};
 static MEMORY_HEADER_T* gFreeList[MM_BLOCKS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};		// pointer to the last block of the 2way linked list of free memory chunks ready for re-use
                                                 // this is an array of free lists for individual fixed chunk sizes
@@ -61,16 +69,16 @@ static MEMORY_HEADER_T* gFreeList[MM_BLOCKS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};		/
                                                 // 0x40, 0x100, 0x400, 0x1000, 0x4000, 0x10000, 0x40000, 0x100000, 0x400000, 0x800000, 0x1000000, 0x4000000, 0x10000000
 												// 64b , 256b , 1kb  , 4kb   , 16kb  , 64kb   , 256kb  , 1Mb     , 4Mb     , 8Mb     , 16Mb     , 64Mb     , 256Mb
 
-unsigned int m_get_heap_start() {
-	return (unsigned int)&__heap_start;
+uintptr_t m_get_heap_start() {
+	return (uintptr_t)&__heap_start;
 }
 
-unsigned int m_get_heap_end() {
-	return (unsigned int)&__heap_end;
+uintptr_t m_get_heap_end() {
+	return (uintptr_t)&__heap_end;
 }
 
-unsigned int m_get_heap_size() {
-	return (unsigned int)&__heap_start - (unsigned int)&__heap_end;
+uintptr_t m_get_heap_size() {
+	return (uintptr_t)&__heap_start - (uintptr_t)&__heap_end;
 }
 
 /*
@@ -78,21 +86,21 @@ unsigned int m_get_heap_size() {
  */
 void* m_alloc(unsigned int size) {
 	if (gHeapStart == 0) {
-		gHeapStart = (unsigned int)&__heap_start; // initialize the heap pointer at first allocation
-		gHeapMax = (unsigned int)&__heap_end - (unsigned int)&__heap_start; // calculate the max. available space
+		gHeapStart = (uintptr_t)&__heap_start; // initialize the heap pointer at first allocation
+		gHeapMax = (uintptr_t)&__heap_end - (uintptr_t)&__heap_start; // calculate the max. available space
 		// TODO: provide a function to set the max heap address from extern as this in on the Raspberry Pi
 		// 		 configured in the config.txt file when setting up the memory the GPU should be able to use
 		//       but this requires a mailbox call and should not be linked in as dependency to this crate
-		unsigned int uSize = gHeapMax;
+		size_t uArmSize = gHeapMax;
 		// the ARM base address is usually 0
 		// so the really available space is the ARM size - heap_start as the program already occupy ARM memory for
 		// the executable and the stack
-		gHeapMax = uSize - gHeapStart;		
+		gHeapMax = uArmSize - gHeapStart;		
 	}
 
 	// calculate the size we need physically on the heap to store the requested data
 	// and ensure address alignment to at least 32bit
-	unsigned int uAllocSize = (size+sizeof(MEMORY_HEADER_T)+0x1F) & (~0x1F);
+	size_t uAllocSize = (size+sizeof(MEMORY_HEADER_T)+0x1F) & (~0x1F);
 
 	// now calculate the block size
 	unsigned int uBlock = 0; // always a minimum memory block will be allocated
@@ -156,7 +164,7 @@ void* m_alloca(unsigned int size, short sAlignment) {
 	// the aligned address is the start address + buffer for real address + padding bytes and than masked with XOR(padding)
 	// this returns an aligned address
 	// use pointer of pointer for easy access of the storage of where to put the real address
-	void** pAlignedBlock = (void **)(((unsigned int)pRealBlock+uAdmin) & ~uPadding);
+	void** pAlignedBlock = (void **)(((uintptr_t)pRealBlock+uAdmin) & ~uPadding);
 	// now store the real address before the aligned address
 	pAlignedBlock[-1] = pRealBlock;
 	return pAlignedBlock;
@@ -168,16 +176,16 @@ void* m_alloca(unsigned int size, short sAlignment) {
 void m_free(void* ptr) {
 	if (ptr == 0) return; // nothing to do for 0 pointer
 	// get the header data from the pointer to be freed
-	MEMORY_HEADER_T* header = (MEMORY_HEADER_T*)((unsigned int)ptr - sizeof(MEMORY_HEADER_T));
+	MEMORY_HEADER_T* header = (MEMORY_HEADER_T*)((uintptr_t)ptr - sizeof(MEMORY_HEADER_T));
 	if (header->magic != MM_MAGIC) {
 		
 	} else {
 		// in case this block has been the last in the HEAP
 		// we do not put this block into the free list, we just reduce the heap end marker
-		if ((unsigned int)header + header->psize == gHeapStart) {
+		if ((uintptr_t)header + header->psize == gHeapStart) {
 			// clear the magic
 			header->magic = 0;
-			gHeapStart = (unsigned int)header;
+			gHeapStart = (uintptr_t)header;
 		} else {
 			// mark this block as free by adding it to the free list based on it's block size
 			// now calculate the block size
@@ -194,9 +202,9 @@ void m_free(void* ptr) {
 				gFreeList[uBlock]->prev = 0;
 				gFreeList[uBlock]->next = 0;
 			} else {
-				pLastFree->next = (unsigned int)header;
+				pLastFree->next = (uintptr_t)header;
 				gFreeList[uBlock] = header;
-				gFreeList[uBlock]->prev = (unsigned int)pLastFree;
+				gFreeList[uBlock]->prev = (uintptr_t)pLastFree;
 				gFreeList[uBlock]->next = 0;
 			}
 		}
@@ -223,6 +231,7 @@ void m_memset(void* trg, const char value, unsigned int size) {
 	}
 }
 
+/*
 unsigned int bcmp(const void* src, const void* trg, unsigned int size) {
 	const unsigned char* cSrc = (const unsigned char*)src;
 	const unsigned char* cTrg = (const unsigned char*)trg;
@@ -232,3 +241,4 @@ unsigned int bcmp(const void* src, const void* trg, unsigned int size) {
 
 	return 0;
 }
+*/
