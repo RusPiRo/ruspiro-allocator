@@ -6,7 +6,7 @@ description = """
 Simple and lightweight heap memory allocator for Raspberry Pi baremetal environments.
 """
 license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-allocator"
+repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.3.0"
 documentation = "https://docs.rs/ruspiro-allocator/0.3.0"
 readme = "README.md"
 keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
@@ -24,7 +24,6 @@ cc = "1.0.37"
 
 [dependencies]
 ruspiro-lock = { path = "../lock", version = "0.3" }
-ruspiro-allocator-oom = { path = "./oom", version = "0.1" }
 
 [features]
 
