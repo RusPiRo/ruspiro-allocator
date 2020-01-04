@@ -17,7 +17,7 @@ This crate requires to be buil with ``nightly`` as it uses the feature ``alloc_e
 To use the crate just add the following dependency to your ``Cargo.toml`` file:
 ```
 [dependencies]
-ruspiro-allocator = "0.2"
+ruspiro-allocator = "0.3"
 ```
 
 Once done the access to the custom allocator is available and will be linked with your project if you add

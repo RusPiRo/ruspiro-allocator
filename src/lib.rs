@@ -4,7 +4,7 @@
  * Author: André Borrmann
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.3.1")]
 #![no_std]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
@@ -16,7 +16,7 @@
 //! # Usage
 //!
 //! To link the custom allocator with your project just add the usage to your main crate rust file like so:
-//! ```
+//! ```ignore
 //! extern crate ruspiro_allocator;
 //! ```
 //! Wherever you define the usage of the ``ruspiro-allocator`` crate within your project does not matter. But as soon
@@ -71,20 +71,23 @@ unsafe impl GlobalAlloc for RusPiRoAllocator {
         let ptr = m_alloca(layout.size() as u32, layout.align() as u16);
         GUARD.release();
 
-        m_memset(ptr, 0x0, layout.size() as u32);
+        memset(ptr, 0x0, layout.size());
         ptr
     }
 }
 
 #[alloc_error_handler]
+#[allow(clippy::empty_loop)]
 fn alloc_error_handler(_: Layout) -> ! {
     // TODO: how to handle memory allocation errors?
     loop {}
 }
 
+#[allow(dead_code)]
 extern "C" {
     // external functions pre-compiled with the build script from c or assembly files
     fn m_alloca(size: u32, align: u16) -> *mut u8;
     fn m_freea(ptr: *mut u8);
-    fn m_memset(ptr: *mut u8, value: u32, size: u32);
+    fn memset(ptr: *mut u8, value: i32, size: usize) -> *mut u8;
+    fn m_get_heap_used() -> usize;
 }

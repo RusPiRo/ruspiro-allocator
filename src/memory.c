@@ -77,9 +77,14 @@ uintptr_t m_get_heap_end() {
 	return (uintptr_t)&__heap_end;
 }
 
-uintptr_t m_get_heap_size() {
+size_t m_get_heap_size() {
 	return (uintptr_t)&__heap_start - (uintptr_t)&__heap_end;
 }
+
+size_t m_get_heap_used() {
+	return gHeapUsed;
+}
+
 
 /*
  * allocate memory
