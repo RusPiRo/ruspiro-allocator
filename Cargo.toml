@@ -1,13 +1,13 @@
 [package]
 name = "ruspiro-allocator"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.3.0" # remember to update html_root_url
+version = "0.3.1" # remember to update html_root_url
 description = """
 Simple and lightweight heap memory allocator for Raspberry Pi baremetal environments.
 """
 license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.3.0"
-documentation = "https://docs.rs/ruspiro-allocator/0.3.0"
+repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.3.1"
+documentation = "https://docs.rs/ruspiro-allocator/0.3.1"
 readme = "README.md"
 keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
