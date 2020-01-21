@@ -15,19 +15,19 @@ This crate requires to be buil with ``nightly`` as it uses the feature ``alloc_e
 
 ## Usage
 To use the crate just add the following dependency to your ``Cargo.toml`` file:
-```
+```toml
 [dependencies]
-ruspiro-allocator = "0.3"
+ruspiro-allocator = "0.4"
 ```
 
 Once done the access to the custom allocator is available and will be linked with your project if you add
-the usage to your main crate rust file:
-```
+the usage to your crates main rust file:
+```rust
 extern crate ruspiro_allocator;
 ```
 
 Wherever you define the usage of the ``ruspiro-allocator`` crate the dynamic structures requiring heap memory allocations from the ``alloc`` crate could be used like so:
-```
+```rust
 #[macro_use]
 extern crate alloc;
 use alloc::vec::*;

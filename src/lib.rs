@@ -4,8 +4,8 @@
  * Author: André Borrmann
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.3.1")]
-#![no_std]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.4.0")]
+#![cfg_attr(not(any(test, doctest)), no_std)]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
 //!
@@ -37,45 +37,35 @@
 //!
 
 /// this specifies the custom memory allocator to use whenever heap memory need to be allocated or freed
-#[global_allocator]
+#[cfg_attr(not(any(test, doctest)), global_allocator)]
 static ALLOCATOR: RusPiRoAllocator = RusPiRoAllocator;
 
 use core::alloc::{GlobalAlloc, Layout};
-use ruspiro_lock::Spinlock;
 
-// define a global static guard to secure concurrent cross core access to the allocator
-static GUARD: Spinlock = Spinlock::new();
+mod memory;
 
 struct RusPiRoAllocator;
 
 unsafe impl GlobalAlloc for RusPiRoAllocator {
     #[inline]
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        GUARD.aquire();
-        let mem = m_alloca(layout.size() as u32, layout.align() as u16);
-        GUARD.release();
-
-        mem
+        memory::alloc(layout.size(), layout.align())
     }
 
     #[inline]
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-        GUARD.aquire();
-        m_freea(ptr);
-        GUARD.release();
+        memory::free(ptr)
     }
 
     #[inline]
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        GUARD.aquire();
-        let ptr = m_alloca(layout.size() as u32, layout.align() as u16);
-        GUARD.release();
-
+        let ptr = memory::alloc(layout.size(), layout.align());
         memset(ptr, 0x0, layout.size());
         ptr
     }
 }
 
+#[cfg(not(any(test, doctest)))]
 #[alloc_error_handler]
 #[allow(clippy::empty_loop)]
 fn alloc_error_handler(_: Layout) -> ! {
@@ -83,11 +73,7 @@ fn alloc_error_handler(_: Layout) -> ! {
     loop {}
 }
 
-#[allow(dead_code)]
 extern "C" {
-    // external functions pre-compiled with the build script from c or assembly files
-    fn m_alloca(size: u32, align: u16) -> *mut u8;
-    fn m_freea(ptr: *mut u8);
+    // reference to the compiler built-in function
     fn memset(ptr: *mut u8, value: i32, size: usize) -> *mut u8;
-    fn m_get_heap_used() -> usize;
 }
