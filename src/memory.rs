@@ -70,6 +70,7 @@ extern "C" {
 /// the actual memory allocated. This means the physical memory requirement is always the requested
 /// one + the size of this descriptor
 #[repr(C, packed)]
+#[derive(Copy, Clone, Default, Debug)]
 struct MemoryDescriptor {
     /// The magic of this block
     magic: u32,
@@ -77,12 +78,18 @@ struct MemoryDescriptor {
     bucket: usize,
     /// The real occupied memory size (descriptor size + payload size)
     size: usize,
+    align: usize,
     /// Address of the preceding memory block when this one is ready for re-use
     prev: usize,
     /// Address of the following memory block when this one is ready for re-use
     next: usize,
-    /// placeholder to ensure the payload will be located after this memory location. This is necessary
-    /// as we need to store right before the payload pointer the address of the descriptor start
+    /// payload address. In addition the address of the descritor managing this memory need to be
+    /// stored relative to the address stored here to ensure we can calculate the descriptor address
+    /// back from the payload address in case we were ask to free this location
+    payload_addr: usize,
+    /// this placeholder ensures that the payload starts earliest after this usize field. If this is
+    /// the case this field will contain the address of the descriptor which need to be stored relative
+    /// to the payload start address
     _placeholder: usize,
 }
 
@@ -112,53 +119,72 @@ static FREE_BUCKETS: [AtomicUsize; 16] = [
 ];
 
 /// Allocate an arbitrary size of memory on the HEAP
-#[allow(clippy::cast_ptr_alignment)]
-pub(crate) fn alloc(size: usize, alignment: usize) -> *mut u8 {
+pub(crate) fn alloc(req_size: usize, alignment: usize) -> *mut u8 {
     // if the HEAP START is initial (0) set the address from the linker script
     HEAP_START.compare_and_swap(
         0,
         unsafe { &__heap_start as *const usize as usize },
         Ordering::AcqRel,
     );
-    let padding = (1 << alignment) - 1;
-    let (admin_size, alloc_size, bucket) = get_alloc_size_and_bucket(size, alignment);
+
+    // calculate the required size to be allocated including descriptor size and alignment
+    let padding = 1 << alignment;
+    let admin_size = core::mem::size_of::<MemoryDescriptor>() + padding;
+    // calculate the physical size in memory that is required to be allocated
+    let phys_size = admin_size + req_size;
+
+    // the physical size defines the bucket this allocation will fall into, so get the last bucket
+    // where this size would fit
+    let bucket_idx = BUCKET_SIZES
+        .iter()
+        .position(|&bucket| phys_size < bucket as usize);
+
+    // if a bucket could be found allocate its size, otherwise allocate the physical size as this is
+    // a to large and therefore generic allocation w/o a bucket assignment
+    let alloc_size = bucket_idx.map_or(phys_size, |b| BUCKET_SIZES[b] as usize);
+    let bucket = bucket_idx.unwrap_or_else(|| BUCKET_SIZES.len());
+
     // check if we can get the nex position to allocate memory from a re-usable bucket.
     // if this is not the case we retrieve this from the end of the current heap. Both is crucial to
     // get right in the concurrent access scenario
     let descriptor_addr = get_free_bucket(bucket)
         .unwrap_or_else(|| HEAP_START.fetch_add(alloc_size, Ordering::SeqCst));
 
+    assert!(descriptor_addr < 0x3f00_0000);
     // any other concurrent allocation will now see the new HEAP_START, so we can now maintain the
     // descriptor at the given location
     let descriptor = unsafe { &mut *(descriptor_addr as *mut MemoryDescriptor) };
+
+    // now fill the memory descriptor managing this allocation
     descriptor.magic = MM_MAGIC;
-    descriptor.bucket = bucket;
+    descriptor.bucket = bucket_idx.unwrap_or_else(|| BUCKET_SIZES.len());
     descriptor.size = alloc_size;
+    descriptor.align = alignment;
     descriptor.prev = 0;
     descriptor.next = 0;
-    // the real address of the usable memory is after the admin data with applied alignment
-    let payload_addr = (descriptor_addr + admin_size) & !padding;
-    let payload = payload_addr as *mut u8;
+    descriptor.payload_addr =
+        (descriptor as *const MemoryDescriptor as usize + admin_size) & !(padding - 1);
+    descriptor._placeholder = 0;
+
+    // the usable address is stored in the payload attribute of the descritor however,
     // while releasing memory the address of this usable location is given, so we need a way to get
     // from this location we need to be able to calculate the MemoryDescriptor location
     // this is done by keeping at least 1 ``usize`` location free in front of the usage memory location
     // and store the descriptor address there
-    unsafe {
-        let descriptor_link_store = payload as *mut usize;
-        *descriptor_link_store.offset(-1) = descriptor_addr;
-    }
-
-    payload
+    let descriptor_link_store = descriptor.payload_addr - core::mem::size_of::<usize>();
+    unsafe { *(descriptor_link_store as *mut usize) = descriptor_addr };
+    assert!(descriptor.payload_addr < 0x3f00_0000);
+    let addr = descriptor.payload_addr - core::mem::size_of::<usize>();
+    let check = unsafe { *(addr as *const usize) };
+    assert_eq!(descriptor_addr, check);
+    descriptor.payload_addr as *mut u8
 }
 
 /// Free the memory occupied by the given payload pointer
-#[allow(clippy::cast_ptr_alignment)]
 pub(crate) fn free(address: *mut u8) {
     // first get the address of the descriptor for this payload pointer
-    let descriptor_addr = unsafe {
-        let descriptor_link_store = address as *mut usize;
-        *descriptor_link_store.offset(-1)
-    };
+    let descriptor_link_store = (address as usize) - core::mem::size_of::<usize>();
+    let descriptor_addr = unsafe { *(descriptor_link_store as *const usize) };
     let mut descriptor = unsafe { &mut *(descriptor_addr as *mut MemoryDescriptor) };
     assert!(descriptor.magic == MM_MAGIC);
     // clean the magic of this memory block
@@ -170,7 +196,7 @@ pub(crate) fn free(address: *mut u8) {
     // this location might be used for allocations. So we shall never ever access parts of this location
     // any more if the swap was successfull
     let prev_heap_start =
-        HEAP_START.compare_and_swap(heap_check, descriptor_addr, Ordering::AcqRel);
+        HEAP_START.compare_and_swap(heap_check, descriptor_addr, Ordering::SeqCst);
     if prev_heap_start == heap_check {
         // we are done
         return;
@@ -189,7 +215,7 @@ pub(crate) fn free(address: *mut u8) {
         let prev_free_bucket_check = FREE_BUCKETS[descriptor.bucket].compare_and_swap(
             prev_free_bucket,
             descriptor_addr,
-            Ordering::AcqRel,
+            Ordering::SeqCst,
         );
         // 4. if the free bucket was different re-try as it has been occupied in the meanwhile
         if prev_free_bucket == prev_free_bucket_check {
@@ -198,31 +224,7 @@ pub(crate) fn free(address: *mut u8) {
     }
 }
 
-#[inline]
-fn get_alloc_size_and_bucket(size: usize, alignment: usize) -> (usize, usize, usize) {
-    // calculate the required size to be allocated including descriptor size and alignment
-    let padding = (1 << alignment) - 1;
-    let admin_size = core::mem::size_of::<MemoryDescriptor>() + padding;
-    let phys_size = admin_size + size;
-    // the size defines the bucket this allocation will fall into, so get the last bucket where this
-    // size would fit
-    let bucket_idx = BUCKET_SIZES
-        .iter()
-        .position(|&bucket| phys_size < bucket as usize);
-
-    // if a bucket could be found allocate its size, otherwise allocate the physical size as this is
-    // a to large and therefore generic allocation w/o a bucket assignment
-    let alloc_size = bucket_idx.map_or(phys_size, |b| BUCKET_SIZES[b] as usize);
-
-    (
-        admin_size,
-        alloc_size,
-        bucket_idx.unwrap_or_else(|| BUCKET_SIZES.len()),
-    )
-}
-
 // get the next free re-usable bucket to allocate the memory from
-
 #[inline]
 fn get_free_bucket(bucket: usize) -> Option<usize> {
     assert!(bucket < FREE_BUCKETS.len());
@@ -235,7 +237,7 @@ fn get_free_bucket(bucket: usize) -> Option<usize> {
         let reusable_bucket_check = FREE_BUCKETS[bucket].compare_and_swap(
             reusable_bucket,
             descriptor.prev,
-            Ordering::AcqRel,
+            Ordering::SeqCst,
         );
         if reusable_bucket_check == reusable_bucket {
             // use the reusable bucket as new memory block
@@ -248,101 +250,4 @@ fn get_free_bucket(bucket: usize) -> Option<usize> {
     }
 
     None
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn calculate_payload_address(
-        descriptor_addr: usize,
-        admin_size: usize,
-        padding: usize,
-    ) -> (*mut u8, *mut u8) {
-        // the real address of the usable memory is after the admin data with applied alignment
-        let payload_addr = (descriptor_addr + admin_size) & !padding;
-        let payload = payload_addr as *mut u8;
-        // while releasing memory the address of this usable location is given, so we need a way to get
-        // from this location we need to be able to calculate the MemoryDescriptor location
-        // this is done by keeping at least 1 ``usize`` location free in front of the usage memory location
-        // and store the descriptor address there
-        unsafe {
-            let descriptor_link_store = payload as *mut usize;
-            (descriptor_link_store.offset(-1) as *mut u8, payload)
-        }
-    }
-
-    #[test]
-    fn calc_bucket_and_address() {
-        let (_, size, bucket) = get_alloc_size_and_bucket(5, 1);
-        assert_eq!(size, 64);
-        assert_eq!(bucket, 0);
-
-        let (_, size, bucket) = get_alloc_size_and_bucket(1024, 1);
-        assert_eq!(size, 2048);
-        assert_eq!(bucket, 5);
-
-        let (_, size, bucket) = get_alloc_size_and_bucket(0x100_0000, 1);
-        assert_eq!(
-            size,
-            0x100_0000 + core::mem::size_of::<MemoryDescriptor>() + 1
-        );
-        assert_eq!(bucket, 15);
-    }
-
-    #[test]
-    fn calc_bucket_and_aligned_address() {
-        let (_, size, bucket) = get_alloc_size_and_bucket(5, 4);
-        assert_eq!(size, 128);
-        assert_eq!(bucket, 1);
-
-        let (_, size, bucket) = get_alloc_size_and_bucket(200, 8);
-        assert_eq!(size, 512);
-        assert_eq!(bucket, 3);
-
-        let (_, size, bucket) = get_alloc_size_and_bucket(1024, 16);
-        assert_eq!(size, 0x2_0000);
-        assert_eq!(bucket, 11);
-    }
-
-    #[test]
-    fn calc_address() {
-        let alignment = 1;
-        let padding = (1 << alignment) - 1;
-        let admin_size = core::mem::size_of::<MemoryDescriptor>() + padding;
-        let (descriptor_link, payload) = calculate_payload_address(0x1000, admin_size, padding);
-        assert_eq!(payload as usize, 0x102C);
-        assert_eq!(
-            descriptor_link as usize,
-            0x102C - core::mem::size_of::<usize>()
-        );
-
-        let alignment = 4;
-        let padding = (1 << alignment) - 1;
-        let admin_size = core::mem::size_of::<MemoryDescriptor>() + padding;
-        let (descriptor_link, payload) = calculate_payload_address(0x1000, admin_size, padding);
-        assert_eq!(payload as usize, 0x1030);
-        assert_eq!(
-            descriptor_link as usize,
-            0x1030 - core::mem::size_of::<usize>()
-        );
-    }
-
-    #[test]
-    fn retreive_free_bucket() {
-        // if no free bucket is stored it should return None
-        assert_eq!(get_free_bucket(1), None);
-        // add a free bucket
-        let descriptor = MemoryDescriptor {
-            magic: MM_MAGIC,
-            bucket: 1,
-            size: 128,
-            prev: 0,
-            next: 0,
-            _placeholder: 0,
-        };
-        let ptr = &descriptor as *const MemoryDescriptor as usize;
-        FREE_BUCKETS[1].store(ptr, Ordering::Relaxed);
-        assert_eq!(get_free_bucket(1), Some(ptr))
-    }
 }

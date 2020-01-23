@@ -60,6 +60,7 @@ unsafe impl GlobalAlloc for RusPiRoAllocator {
     #[inline]
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         let ptr = memory::alloc(layout.size(), layout.align());
+        assert!((ptr as usize) < 0x3f00_0000);
         memset(ptr, 0x0, layout.size());
         ptr
     }
