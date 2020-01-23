@@ -1,4 +1,5 @@
-/target
+pi_test
+**/target
 **/*.rs.bk
 **/release
 .vscode
