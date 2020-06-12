@@ -7,6 +7,7 @@ branches:
 language: rust
 
 rust:
+  - 1.45.0
 # build nightly only for the time beeing
   - nightly
 
@@ -19,7 +20,7 @@ matrix:
         - rustup target add aarch64-unknown-none
         - rustup component add rust-src
         - rustup component add llvm-tools-preview
-        - cargo install cargo-xbuild --version 0.5.29
+        - cargo install cargo-xbuild
         - cargo install cargo-make
         # remove local path in the dependencies of the cargo file to ensure we use the version from crates.io
         - sed -i 's/path.*=.*"\.\{2\}.*", version/version/g' Cargo.toml
@@ -31,7 +32,7 @@ matrix:
         - rustup target add armv7a-none-eabi
         - rustup component add rust-src
         - rustup component add llvm-tools-preview
-        - cargo install cargo-xbuild --version 0.5.29
+        - cargo install cargo-xbuild
         - cargo install cargo-make
         - sed -i 's/path.*=.*"\.\{2\}.*", version/version/g' Cargo.toml
       # remove local path in the dependencies of the cargo file to ensure we use the version from crates.io
