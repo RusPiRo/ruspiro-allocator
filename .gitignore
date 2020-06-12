@@ -3,4 +3,3 @@ pi_test
 **/*.rs.bk
 **/release
 .vscode
-*.lock

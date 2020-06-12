@@ -4,7 +4,7 @@
  * Author: André Borrmann
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.4.0")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.4.1")]
 #![cfg_attr(not(any(test, doctest)), no_std)]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations
@@ -25,8 +25,7 @@
 //! ```
 //! #[macro_use]
 //! extern crate alloc;
-//! use alloc::vec::*;
-//! use alloc::boxed::*;
+//! use alloc::{boxed::Box, vec::Vec};
 //!
 //! fn main() {
 //!     let mut v: Vec<u32> = vec![10, 20];
@@ -60,7 +59,6 @@ unsafe impl GlobalAlloc for RusPiRoAllocator {
     #[inline]
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         let ptr = memory::alloc(layout.size(), layout.align());
-        assert!((ptr as usize) < 0x3f00_0000);
         memset(ptr, 0x0, layout.size());
         ptr
     }
