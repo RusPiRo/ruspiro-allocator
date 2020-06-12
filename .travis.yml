@@ -8,8 +8,7 @@ language: rust
 
 rust:
 # build nightly only for the time beeing
-  - 1.44.0
-  - nightly
+  - nightly-2020-05-14
 
 matrix:
   fast_finish: true
