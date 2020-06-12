@@ -16,7 +16,7 @@ matrix:
     - name: "build 64Bit"
       install:
         - sudo apt-get install gcc-aarch64-linux-gnu
-        - cargo install cargo-xbuild
+        - cargo install cargo-xbuild --version 0.5.33
         - cargo install cargo-make
         - rustup target add aarch64-unknown-none
         - rustup component add rust-src
@@ -28,7 +28,7 @@ matrix:
     - name: "build 32Bit"
       install:
         - sudo apt-get install gcc-arm-none-eabi
-        - cargo install cargo-xbuild
+        - cargo install cargo-xbuild --version 0.5.33
         - cargo install cargo-make
         - rustup target add armv7a-none-eabi
         - rustup component add rust-src
