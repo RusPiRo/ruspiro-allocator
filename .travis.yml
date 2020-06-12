@@ -7,9 +7,8 @@ branches:
 language: rust
 
 rust:
-  - 1.45.0
 # build nightly only for the time beeing
-  - nightly
+  - 1.44.0-nightly
 
 matrix:
   fast_finish: true
