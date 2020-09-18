@@ -1,9 +1,9 @@
-/***************************************************************************************************
- * Copyright (c) 2019 by the authors
+/***********************************************************************************************************************
+ * Copyright (c) 2020 by the authors
  *
- * Author: André Borrmann
- * License: Apache License 2.0
- **************************************************************************************************/
+ * Author: André Borrmann <pspwizard@gmx.de>
+ * License: Apache License 2.0 / MIT
+ **********************************************************************************************************************/
 
 //! # Lock Free Memory Management
 //!
@@ -106,26 +106,77 @@ struct BucketQueue {
 /// ``usize`` to ensure we can perform immediate atomic math operation (add/sub) on it.
 static HEAP_START: AtomicUsize = AtomicUsize::new(0);
 
-/// The list of buckets that may contain re-usable memory blocks. The new free memory blocks are added always to the 
+/// The list of buckets that may contain re-usable memory blocks. The new free memory blocks are added always to the
 /// tail of each list, while the retrival always happens from the head. Like FIFO buffer
-static FREE_BUCKETS: [BucketQueue; BUCKET_SIZES.len() +  1] = [
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
-    BucketQueue { head: AtomicUsize::new(0), tail: AtomicUsize::new(0) },
+static FREE_BUCKETS: [BucketQueue; BUCKET_SIZES.len() + 1] = [
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
+    BucketQueue {
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    },
 ];
 
 /// Allocate an arbitrary size of memory on the HEAP
@@ -179,7 +230,7 @@ pub(crate) fn alloc(req_size: usize, alignment: usize) -> *mut u8 {
 
     // the usable address is stored in the payload attribute of the descriptor, however,
     // while releasing memory with this address given, we need a way to calculate the MemoryDescriptor location from
-    // there. This is done by keeping at least 1 ``usize`` location free in front of the usage 
+    // there. This is done by keeping at least 1 ``usize`` location free in front of the usage
     // memory location and store the descriptor address there
     let descriptor_link_store = descriptor.payload_addr - core::mem::size_of::<usize>();
     unsafe { *(descriptor_link_store as *mut usize) = descriptor_addr };
@@ -212,17 +263,15 @@ pub(crate) fn alloc_page(num: usize, page_size: usize) -> *mut u8 {
         heap_start = heap_align;
     }
 
-    // as we now know where the requested memory will start and end we can update the HEAP_START accordingly to let 
+    // as we now know where the requested memory will start and end we can update the HEAP_START accordingly to let
     // others know where to request memory from
-    HEAP_START.store(heap_start + num * page_size, Ordering::Release); // from her other cores will be able to access 
-    // this as well
+    HEAP_START.store(heap_start + num * page_size, Ordering::Release); // from her other cores will be able to access
+                                                                       // this as well
 
     let alloc_size = num * page_size + core::mem::size_of::<MemoryDescriptor>();
     let descriptor_addr = heap_start - core::mem::size_of::<MemoryDescriptor>();
     // fill the descriptor structure
-    let descriptor = unsafe { 
-        &mut *(descriptor_addr as *mut MemoryDescriptor)
-    };
+    let descriptor = unsafe { &mut *(descriptor_addr as *mut MemoryDescriptor) };
 
     // now fill the memory descriptor managing this allocation
     descriptor.magic = MM_MAGIC;
@@ -237,7 +286,7 @@ pub(crate) fn alloc_page(num: usize, page_size: usize) -> *mut u8 {
 
     // the usable address is stored in the payload attribute of the descriptor, however,
     // while releasing memory with this address given, we need a way to calculate the MemoryDescriptor location from
-    // there. This is done by keeping at least 1 ``usize`` location free in front of the usage 
+    // there. This is done by keeping at least 1 ``usize`` location free in front of the usage
     // memory location and store the descriptor address there
     let descriptor_link_store = descriptor.payload_addr - core::mem::size_of::<usize>();
     unsafe { *(descriptor_link_store as *mut usize) = descriptor_addr };
@@ -298,9 +347,11 @@ fn push_to_free_bucket(descriptor: &mut MemoryDescriptor) {
                 let prev_descriptor = unsafe { &mut *(prev_free_bucket as *mut MemoryDescriptor) };
                 prev_descriptor.next = descriptor_addr;
             } else {
-                // 6. if the previous free bucket was not set the head is also not set, so update the head to the new 
+                // 6. if the previous free bucket was not set the head is also not set, so update the head to the new
                 // free bucket as well
-                FREE_BUCKETS[descriptor.bucket].head.store(descriptor_addr, Ordering::SeqCst);
+                FREE_BUCKETS[descriptor.bucket]
+                    .head
+                    .store(descriptor_addr, Ordering::SeqCst);
             }
             return;
         }
@@ -334,20 +385,20 @@ fn pop_from_free_bucket(bucket: usize, _alloc_size: usize) -> Option<usize> {
                 // we were able to consume the bucket, all others will see the correct free bucket list not interfering
                 // with this one - let's check for its size
                 if descriptor.size >= alloc_size {
-                    // this memory block can hold the requested size, check how much memory will be left over to see if 
+                    // this memory block can hold the requested size, check how much memory will be left over to see if
                     // we could split the region up into another re-usable memory block
                     let remaining_size = descriptor.size -  alloc_size;
                     // check only if at least 64Bytes are remaining
                     if remaining_size > MemBucketSize::_64B {
                         // create a new memory descriptor located after the memory we re-use
-                        let mut descriptor = unsafe { 
+                        let mut descriptor = unsafe {
                             &mut *((reusable_bucket + alloc_size) as *mut MemoryDescriptor)
                         };
                         let bucket_idx = BUCKET_SIZES
                             .iter()
                             .position(|&bucket| remaining_size < bucket as usize);
                         let bucket = bucket_idx.unwrap_or_else(|| BUCKET_SIZES.len());
-                        
+
                         descriptor.bucket = bucket;
                         descriptor.size = remaining_size;
                         push_to_free_bucket(descriptor);
@@ -359,7 +410,7 @@ fn pop_from_free_bucket(bucket: usize, _alloc_size: usize) -> Option<usize> {
                     // so - check the next one
 
                 }
-                
+
             }
             // as we could not consume this re-usable block (someone else was faster :) ) - try the next one that is
             // actually stored in the list
@@ -368,7 +419,7 @@ fn pop_from_free_bucket(bucket: usize, _alloc_size: usize) -> Option<usize> {
         */
         // no reusable memory block found --> trigger allocation from fresh heap ...
         return None;
-    } else  {
+    } else {
         // first check if we have re-usable memory available in the corresponding bucket
         let reusable_bucket = FREE_BUCKETS[bucket].head.load(Ordering::Acquire);
         // if this is available use it as the free slot, so replace this free bucket with it's next
@@ -383,9 +434,8 @@ fn pop_from_free_bucket(bucket: usize, _alloc_size: usize) -> Option<usize> {
             if reusable_bucket_check == reusable_bucket {
                 if descriptor.next != 0 {
                     // if we had a next block update it's previous one
-                    let next_descriptor = unsafe { 
-                        &mut *(descriptor.next as *mut MemoryDescriptor)
-                    };                    
+                    let next_descriptor =
+                        unsafe { &mut *(descriptor.next as *mut MemoryDescriptor) };
                     next_descriptor.prev = 0;
                 } else {
                     // clear the tail as this was the last entry in the list
