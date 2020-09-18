@@ -1,10 +1,10 @@
 /***********************************************************************************************************************
- * Copyright (c) 2019 by the authors
+ * Copyright (c) 2020 by the authors
  *
- * Author: André Borrmann
- * License: Apache License 2.0
+ * Author: André Borrmann <pspwizard@gmx.de>
+ * License: Apache License 2.0 / MIT
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/0.4.1")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-allocator/||VERSION||")]
 #![cfg_attr(not(any(test, doctest)), no_std)]
 #![feature(alloc_error_handler)]
 //! # Custom Allocator for HEAP memory allocations

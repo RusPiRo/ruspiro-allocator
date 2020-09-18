@@ -1,26 +1,36 @@
 [package]
 name = "ruspiro-allocator"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.4.1" # remember to update html_root_url
+version = "0.5.0" # remember to update html_root_url
 description = """
 Simple and lightweight heap memory allocator for Raspberry Pi baremetal environments.
 """
-license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v0.4.1"
-documentation = "https://docs.rs/ruspiro-allocator/0.4.1"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/RusPiRo/ruspiro-allocator/tree/v||VERSION||"
+documentation = "https://docs.rs/ruspiro-allocator/||VERSION||"
 readme = "README.md"
 keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
 edition = "2018"
 links = "ruspiro_allocator"
+exclude = [".travis.yml", "Makefile.toml"]
 
 [badges]
-travis-ci = { repository = "RusPiRo/ruspiro-allocator", branch = "master" }
+travis-ci = { repository = "RusPiRo/ruspiro-allocator", branch = "release" }
 maintenance = { status = "actively-developed" }
+is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-allocator" }
 
 [lib]
+
+[build-dependencies]
+# uncomment this if a build.rs script should be run as part of the build process
+# cc = "1.0"
 
 [dependencies]
 
 [features]
+ruspiro_pi3 = [ ]
+
+[patch.crates-io]
+
 
