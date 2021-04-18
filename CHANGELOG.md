@@ -1,5 +1,9 @@
 # Changelog
 
+## :peach: v0.4.3
+
+This version migtrates to GitHub Actions as new CI/CD pipeline. In addition it introduces a custom build target used to build the crate for the Raspberry Pi Aarch64.
+
 ## :peach: v0.4.2
 
 This version introduces a stable build pipeline using Travis-CI. This provides a convinient way to publish next crate versions from the pipeline.
