@@ -4,7 +4,7 @@ This crate provides a custom allocator for heap memory. If any baremetal crate u
 the ``alloc`` crate an allocator need to be provided as well. However, this crate does not export any public
 API to be used. It only encapsulates the memory allocator that shall be linked into the binary.
 
-[![Travis-CI Status](https://api.travis-ci.com/RusPiRo/ruspiro-allocator.svg?branch=release)](https://travis-ci.org/RusPiRo/ruspiro-allocator)
+![CI](https://github.com/RusPiRo/ruspiro-allocator/workflows/CI/badge.svg?branch=development)
 [![Latest Version](https://img.shields.io/crates/v/ruspiro-allocator.svg)](https://crates.io/crates/ruspiro-allocator)
 [![Documentation](https://docs.rs/ruspiro-allocator/badge.svg)](https://docs.rs/ruspiro-allocator)
 [![License](https://img.shields.io/crates/l/ruspiro-allocator.svg)](https://github.com/RusPiRo/ruspiro-allocator#license)
@@ -19,7 +19,7 @@ To use the crate just add the following dependency to your ``Cargo.toml`` file:
 
 ```toml
 [dependencies]
-ruspiro-allocator = "0.4.2"
+ruspiro-allocator = "||VERSION||"
 ```
 
 Once done the access to the custom allocator is available and will be linked with your project if you add

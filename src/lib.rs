@@ -46,33 +46,33 @@ mod memory;
 struct RusPiRoAllocator;
 
 unsafe impl GlobalAlloc for RusPiRoAllocator {
-    #[inline]
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        memory::alloc(layout.size(), layout.align())
-    }
+  #[inline]
+  unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+    memory::alloc(layout.size(), layout.align())
+  }
 
-    #[inline]
-    unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-        memory::free(ptr)
-    }
+  #[inline]
+  unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
+    memory::free(ptr)
+  }
 
-    #[inline]
-    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        let ptr = memory::alloc(layout.size(), layout.align());
-        memset(ptr, 0x0, layout.size());
-        ptr
-    }
+  #[inline]
+  unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
+    let ptr = memory::alloc(layout.size(), layout.align());
+    memset(ptr, 0x0, layout.size());
+    ptr
+  }
 }
 
 #[cfg(not(any(test, doctest)))]
 #[alloc_error_handler]
 #[allow(clippy::empty_loop)]
 fn alloc_error_handler(_: Layout) -> ! {
-    // TODO: how to handle memory allocation errors?
-    loop {}
+  // TODO: how to handle memory allocation errors?
+  loop {}
 }
 
 extern "C" {
-    // reference to the compiler built-in function
-    fn memset(ptr: *mut u8, value: i32, size: usize) -> *mut u8;
+  // reference to the compiler built-in function
+  fn memset(ptr: *mut u8, value: i32, size: usize) -> *mut u8;
 }
