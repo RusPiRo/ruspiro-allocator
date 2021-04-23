@@ -21,23 +21,18 @@ command = "cargo"
 args = ["build", "--release", "--features", "${FEATURES}"]
 
 [tasks.pi3]
-env = { FEATURES = "ruspiro_pi3" }
+env = { FEATURES = "" }
 run_task = "build"
 
 [tasks.clippy]
-env = { FEATURES = "ruspiro_pi3" }
+env = { FEATURES = "" }
 command = "cargo"
 args = ["clippy", "--features", "${FEATURES}"]
 
 [tasks.doc]
-env = { FEATURES = "ruspiro_pi3" }
+env = { FEATURES = "" }
 command = "cargo"
-args = ["doc", "--open", "--features", "${FEATURES}"]
-
-[tasks.doctest]
-env = { FEATURES = "ruspiro_pi3" }
-command = "cargo"
-args = ["test", "--doc", "--features", "${FEATURES}"]
+args = ["doc", "--target", "aarch64-unknown-linux-gnu", "--open", "--features", "${FEATURES}"]
 
 [tasks.clean]
 command = "cargo"
