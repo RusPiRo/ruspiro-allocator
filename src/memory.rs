@@ -183,10 +183,11 @@ static FREE_BUCKETS: [BucketQueue; BUCKET_SIZES.len() + 1] = [
 /// The alignment is given in Bytes and need to be a power of 2
 pub(crate) fn alloc(req_size: usize, alignment: usize) -> *mut u8 {
   // if the HEAP START is initial (0) set the address from the linker script
-  HEAP_START.compare_and_swap(
+  let _ = HEAP_START.compare_exchange(
     0,
     unsafe { &__heap_start as *const usize as usize },
     Ordering::AcqRel,
+    Ordering::Release,
   );
 
   // calculate the required size to be allocated including descriptor size and alignment
@@ -246,10 +247,11 @@ pub(crate) fn alloc_page(num: usize, page_size: usize) -> *mut u8 {
   // for the time beeing we will always allocate fresh memory from the heap for this kind of allocation
   // and do never check available free buckets
   // if the HEAP START is initial (0) set the address from the linker script
-  HEAP_START.compare_and_swap(
+  let _ = HEAP_START.compare_exchange(
     0,
     unsafe { &__heap_start as *const usize as usize },
     Ordering::AcqRel,
+    Ordering::Release,
   );
 
   // from the current HEAP_START calculate the next start address of a page
@@ -310,8 +312,15 @@ pub(crate) fn free(address: *mut u8) {
   // updating the heap pointer is the critical part here for concurrent access. So once this happened
   // this location might be used for allocations. So we shall never ever access parts of this location
   // any more if the swap was successfull
-  let prev_heap_start = HEAP_START.compare_and_swap(heap_check, descriptor_addr, Ordering::SeqCst);
-  if prev_heap_start == heap_check {
+  if HEAP_START
+    .compare_exchange(
+      heap_check,
+      descriptor_addr,
+      Ordering::AcqRel,
+      Ordering::AcqRel,
+    )
+    .is_ok()
+  {
     // we are done
     return;
   }
@@ -333,13 +342,16 @@ fn push_to_free_bucket(descriptor: &mut MemoryDescriptor) {
     descriptor.prev = prev_free_bucket;
     descriptor.next = 0;
     // 3. swap the old and the new free bucket if the old free bucket is still the same
-    let prev_free_bucket_check = FREE_BUCKETS[descriptor.bucket].tail.compare_and_swap(
-      prev_free_bucket,
-      descriptor_addr,
-      Ordering::SeqCst,
-    );
-    // 4. if the free bucket was different re-try as it has been occupied in the meanwhile
-    if prev_free_bucket == prev_free_bucket_check {
+    if FREE_BUCKETS[descriptor.bucket]
+      .tail
+      .compare_exchange(
+        prev_free_bucket,
+        descriptor_addr,
+        Ordering::AcqRel,
+        Ordering::Release,
+      )
+      .is_ok()
+    {
       // 5. if we have successfully pushed this to the tail, update the next pointer in the previous
       // descriptor to make the chain complete
       if prev_free_bucket != 0 {
@@ -425,12 +437,16 @@ fn pop_from_free_bucket(bucket: usize, _alloc_size: usize) -> Option<usize> {
     // one. This is crucial in cuncurrent access so do this only if this still is the same free bucket
     if reusable_bucket != 0 {
       let descriptor = unsafe { &*(reusable_bucket as *const MemoryDescriptor) };
-      let reusable_bucket_check = FREE_BUCKETS[bucket].head.compare_and_swap(
-        reusable_bucket,
-        descriptor.next,
-        Ordering::Release,
-      );
-      if reusable_bucket_check == reusable_bucket {
+      if FREE_BUCKETS[bucket]
+        .head
+        .compare_exchange(
+          reusable_bucket,
+          descriptor.next,
+          Ordering::Release,
+          Ordering::Release,
+        )
+        .is_ok()
+      {
         if descriptor.next != 0 {
           // if we had a next block update it's previous one
           let next_descriptor = unsafe { &mut *(descriptor.next as *mut MemoryDescriptor) };

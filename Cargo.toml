@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-allocator"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.4.3" # remember to update html_root_url
+version = "0.4.4" # remember to update html_root_url
 description = """
 Simple and lightweight heap memory allocator for Raspberry Pi baremetal environments.
 """
@@ -13,7 +13,7 @@ keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
 edition = "2018"
 links = "ruspiro_allocator"
-exclude = ["Makefile.toml"]
+exclude = ["Makefile.toml", ".cargo/config.toml"]
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -28,8 +28,9 @@ is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-allocator" }
 [dependencies]
 
 [features]
-ruspiro_pi3 = [ ]
+
+[package.metadata.docs.rs]
+targets = ["aarch64-unknown-linux-gnu"]
+features = []
 
 [patch.crates-io]
-
-
