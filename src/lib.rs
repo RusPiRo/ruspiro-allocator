@@ -13,6 +13,11 @@
 //! the ``alloc`` crate an allocator need to be provided as well. However, this crate does not export any public
 //! API to be used. It only encapsulates the memeory allocator that shall be linked into the binary.
 //!
+//! # Prerequisit
+//!
+//! The lock free memory allocations use atomic operations. Thus to properly work on a Raspberry Pi the MMU is required
+//! to be configured and enabled. Otherwise memory allocations will just hang the cores.
+//!
 //! # Usage
 //!
 //! To link the custom allocator with your project just add the usage to your main crate rust file like so:
@@ -34,6 +39,10 @@
 //! }
 //! ```
 //!
+
+// this is crate is required to bring the core memory functions like memset, memcpy etc. into the link process
+#[doc(hidden)]
+extern crate rlibc;
 
 /// this specifies the custom memory allocator to use whenever heap memory need to be allocated or freed
 #[cfg_attr(not(any(test, doctest)), global_allocator)]
