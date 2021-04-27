@@ -186,8 +186,8 @@ pub(crate) fn alloc(req_size: usize, alignment: usize) -> *mut u8 {
   let _ = HEAP_START.compare_exchange(
     0,
     unsafe { &__heap_start as *const usize as usize },
-    Ordering::AcqRel,
-    Ordering::Release,
+    Ordering::SeqCst,
+    Ordering::Relaxed,
   );
 
   // calculate the required size to be allocated including descriptor size and alignment
@@ -250,8 +250,8 @@ pub(crate) fn alloc_page(num: usize, page_size: usize) -> *mut u8 {
   let _ = HEAP_START.compare_exchange(
     0,
     unsafe { &__heap_start as *const usize as usize },
-    Ordering::AcqRel,
-    Ordering::Release,
+    Ordering::SeqCst,
+    Ordering::Relaxed,
   );
 
   // from the current HEAP_START calculate the next start address of a page
@@ -316,8 +316,8 @@ pub(crate) fn free(address: *mut u8) {
     .compare_exchange(
       heap_check,
       descriptor_addr,
-      Ordering::AcqRel,
-      Ordering::AcqRel,
+      Ordering::SeqCst,
+      Ordering::Relaxed,
     )
     .is_ok()
   {
