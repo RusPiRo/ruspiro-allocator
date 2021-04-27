@@ -1,5 +1,15 @@
 # Changelog
 
+## :strawberry: v0.4.5
+
+- ### :detective: Bug-Fixes
+
+  - Fix an issue with the memory ordering used for some atomic operations.
+
+- ### :wrench: Maintenance
+
+  - Add the `rlibc` crate as an dependency and the `extern crate rlibc` to this library crate. This brings the built-in core memory functions like *memset*, *memcpy* into scope for linking in the final binary that uses this crate. This is quite convenient as those functions are required anyway as soon one deals with heap memory allocations and thus reduces the dependency list from the final binary and ensures this is not forgotten.
+
 ## :peach: v0.4.4
 
 - ### :wrench: Maintenance

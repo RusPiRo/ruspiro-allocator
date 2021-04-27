@@ -12,6 +12,7 @@ API to be used. It only encapsulates the memory allocator that shall be linked i
 ## Pre-Requisits
 
 This crate requires to be buil with ``nightly`` as it uses the feature ``alloc_error_handler`` which is not stable yet.
+When this crate is used with the Raspberry Pi it also requires the **MMU** to be configured and enables as it uses atomic operations to provide the lock free memory allocations.
 
 ## Usage
 
