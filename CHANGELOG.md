@@ -1,5 +1,17 @@
 # Changelog
 
+## :strawberry: v0.4.6
+
+- ### :detective: Bug-Fixes
+
+  - Fix an issue with the memory ordering used for some atomic operations.
+
+- ### :wrench: Maintenance
+
+  - update to compile with latest nightly and Rust edition 2021
+  - remove custom build target for library crate build
+  - minor clean-up in `Makefile` and CI config
+
 ## :strawberry: v0.4.5
 
 - ### :detective: Bug-Fixes
