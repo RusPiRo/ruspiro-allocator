@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-allocator"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.4.5" # remember to update html_root_url
+version = "0.4.6" # remember to update html_root_url
 description = """
 Simple and lightweight heap memory allocator for Raspberry Pi baremetal environments.
 """
@@ -11,13 +11,12 @@ documentation = "https://docs.rs/ruspiro-allocator/||VERSION||"
 readme = "README.md"
 keywords = ["RusPiRo", "baremetal", "allocator", "raspberrypi"]
 categories = ["no-std", "embedded"]
-edition = "2018"
+edition = "2021"
 links = "ruspiro_allocator"
-exclude = ["Makefile.toml", ".cargo/config.toml"]
+exclude = ["Makefile.toml", ".cargo/config.toml", ".github"]
 
 [badges]
 maintenance = { status = "actively-developed" }
-is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-allocator" }
 
 [lib]
 

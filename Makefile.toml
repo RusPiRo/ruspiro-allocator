@@ -18,32 +18,24 @@ RUSTFLAGS = "-C linker=${CC} -C target-cpu=cortex-a53"
 
 [tasks.build]
 command = "cargo"
-args = ["build", "--release", "--features", "${FEATURES}"]
-
-[tasks.pi3]
-env = { FEATURES = "" }
-run_task = "build"
+args = ["build", "--release"]
 
 [tasks.clippy]
-env = { FEATURES = "" }
 command = "cargo"
-args = ["clippy", "--features", "${FEATURES}"]
+args = ["clippy"]
 
 [tasks.doc]
-env = { FEATURES = "" }
 command = "cargo"
-args = ["doc", "--target", "aarch64-unknown-linux-gnu", "--open", "--features", "${FEATURES}"]
+args = ["doc", "--target", "aarch64-unknown-linux-gnu", "--open"]
 
 [tasks.clean]
 command = "cargo"
 args = ["clean"]
 
 [tasks.publish_dry]
-env = { FEATURES = "" }
 command = "cargo"
-args = ["publish", "--dry-run", "--features", "${FEATURES}"]
+args = ["publish", "--dry-run"]
 
 [tasks.publish]
-env = { FEATURES = "" }
 command = "cargo"
-args = ["publish", "--token", "${CRATES_TOKEN}", "--allow-dirty", "--features", "${FEATURES}"]
+args = ["publish", "--token", "${CRATES_TOKEN}", "--allow-dirty"]
