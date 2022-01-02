@@ -10,7 +10,7 @@ checksum = "fc874b127765f014d792f16763a81245ab80500e2ad921ed4ee9e82481ee08fe"
 
 [[package]]
 name = "ruspiro-allocator"
-version = "0.4.5"
+version = "0.4.6"
 dependencies = [
  "rlibc",
 ]

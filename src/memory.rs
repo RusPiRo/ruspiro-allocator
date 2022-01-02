@@ -348,7 +348,7 @@ fn push_to_free_bucket(descriptor: &mut MemoryDescriptor) {
         prev_free_bucket,
         descriptor_addr,
         Ordering::AcqRel,
-        Ordering::Release,
+        Ordering::Relaxed,
       )
       .is_ok()
     {
@@ -442,8 +442,8 @@ fn pop_from_free_bucket(bucket: usize, _alloc_size: usize) -> Option<usize> {
         .compare_exchange(
           reusable_bucket,
           descriptor.next,
-          Ordering::Release,
-          Ordering::Release,
+          Ordering::AcqRel,
+          Ordering::Relaxed,
         )
         .is_ok()
       {
